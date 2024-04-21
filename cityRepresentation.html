@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Grid Visualizer</title>
+  <style>
+    .grid {
+      display: grid;
+      gap: 1px;
+      border: 1px solid black;
+    }
+    .cell {
+      background-color: green;
+    }
+    .cell.black {
+      background-color: black;
+    }
+    .cell.white {
+      background-color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Grid Visualizer</h1>
+  <label for="gridSizeInput">Grid Size:</label>
+  <input type="number" id="gridSizeInput" min="1" value="8">
+  <br>
+  <textarea id="gridInput" rows="5" cols="20">Enter grid here</textarea>
+  <br>
+  <label for="coordInput">Enter coordinates (one pair per line):</label>
+  <br>
+  <textarea id="coordInput" rows="10" cols="20"></textarea>
+  <br>
+  <button onclick="visualizeGrid()">Visualize</button>
+  <br><br>
+  <div id="gridContainer" class="grid"></div>
+  <p id="pathLengthDisplay"></p>
+
+  <script>
+    function getRandomColor() {
+      const hue = Math.floor(Math.random() * 360);
+      const saturation = Math.floor(Math.random() * 50) + 50; // Ensure high saturation (50-100)
+      const lightness = Math.floor(Math.random() * 25) + 60; // Ensure high lightness (60-85)
+      // Exclude green hues (120-180)
+      const adjustedHue = (hue < 120 || hue > 180) ? hue : (hue + 180) % 360;
+      return `hsl(${adjustedHue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    function visualizeGrid() {
+      const gridSizeInput = document.getElementById('gridSizeInput');
+      const gridSize = parseInt(gridSizeInput.value);
+      const gridInput = document.getElementById('gridInput').value;
+      const gridValues = gridInput.split(',').map(Number);
+      const gridContainer = document.getElementById('gridContainer');
+      gridContainer.innerHTML = '';
+      const colorMap = {};
+
+      // Read coordinates from the input field
+      const coordInput = document.getElementById('coordInput').value;
+      const coords = coordInput.split('\n').map(line => line.trim().split(' ').map(Number));
+
+      let pathLength = 0;
+
+      for (let i = 0; i < gridValues.length; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.addEventListener('click', displayCoordinates);
+
+        if (gridValues[i] === -1) {
+          cell.classList.add('black');
+        } else if (gridValues[i] === -2) {
+          cell.classList.add('white');
+        } else if (gridValues[i] > 0) {
+          if (!colorMap[gridValues[i]]) {
+            colorMap[gridValues[i]] = getRandomColor();
+          }
+          cell.style.backgroundColor = colorMap[gridValues[i]];
+        }
+
+        // Check if the current cell coordinates are in the coords array
+        const x = i % gridSize;
+        const y = Math.floor(i / gridSize);
+        if (coords.some(coord => coord[0] === x && coord[1] === y)) {
+          cell.style.backgroundColor = 'red'; // Set the cell color to red
+          pathLength++; // Increment the path length
+        }
+
+        gridContainer.appendChild(cell);
+      }
+
+      // Display the path length
+      const pathLengthDisplay = document.getElementById('pathLengthDisplay');
+      pathLengthDisplay.textContent = `Length of the shortest path: ${pathLength}`;
+
+      const gridWidth = Math.max(640, gridSize * 20); // Set the grid width based on the grid size
+      const gridHeight = Math.max(640, gridSize * 20); // Set the grid height based on the grid size
+      gridContainer.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+      gridContainer.style.width = `${gridWidth}px`;
+      gridContainer.style.height = `${gridHeight}px`;
+    }
+
+    function displayCoordinates(event) {
+      const cell = event.target;
+      const cellIndex = Array.from(cell.parentNode.children).indexOf(cell);
+      const gridSize = Math.sqrt(cell.parentNode.children.length);
+      const x = cellIndex % gridSize;
+      const y = Math.floor(cellIndex / gridSize);
+      alert(`Cell coordinates: (${x}, ${y})`);
+    }
+  </script>
+</body>
+</html>
