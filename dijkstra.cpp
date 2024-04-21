@@ -3,6 +3,7 @@
 #include <limits>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 Dijkstra::Dijkstra(const std::vector<std::vector<int>>& grid) : grid(grid) {
     // rows and collumns are set to the grid size.
