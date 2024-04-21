@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <utility>
+#include <queue>
 
 class Dijkstra {
 public:
