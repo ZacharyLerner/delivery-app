@@ -185,6 +185,7 @@ int main(int argc, char* argv[]) {
 
     // Create a string stream to buffer the output
     std::stringstream buffer;
+    std::stringstream orderBuffer;
     // with everything ready start making the deliveries
     // generate up from 2 to 7 deliveries and store their locations in pickedHouses
     std::vector<std::pair<int,int>> houseLocations = generateDeliveries(gen, cityMap, houses);
@@ -205,7 +206,7 @@ int main(int argc, char* argv[]) {
     // store the delivery house location
     int lastHouseX = houseLocations[shortestIndex].first;
     int lastHouseY = houseLocations[shortestIndex].second;
-    // std::cout << lastHouseY << ":" << lastHouseX << std::endl; // debug to show house locations
+    //std::cout << lastHouseY << ":" << lastHouseX << std::endl; // debug to show house locations
 
     // write the path output to a file
     // Create an ofstream object for file output
@@ -218,10 +219,15 @@ int main(int argc, char* argv[]) {
     Dijkstra dijkstraHub(grid);
     std::pair<int,int> hubLocation = cityMap.getHubLocation();
     std::vector<std::pair<int, int>> paths = dijkstraHub.findShortestPath(hubLocation.second,hubLocation.first, lastHouseY, lastHouseX);
+    // print out the delivery in a nice to read format to be able to verify with the outputPath file
+    orderBuffer << "Order 1\n" << "Start location: (" << paths[0].second << "," << paths[0].first << ")\nEnd location: (" << paths[paths.size() - 1].second << "," << paths[paths.size() - 1].first << ")" << std::endl;
+    orderBuffer << "Path length: " << paths.size() << "\n" << std::endl;
+
     // Loop over the paths vector and write each pair to the file
     for (const std::pair<int, int>& p : paths) {
         buffer << p.first << " " << p.second << std::endl;
     }
+    buffer << std::endl;
 
     houseLocations.erase(houseLocations.begin()+shortestIndex); // delete the house we already visited
     shortestIndex = 0; // reset our shortest index for the next orders
@@ -229,6 +235,7 @@ int main(int argc, char* argv[]) {
 
     // Polymorphic implementation of the above code to use a for loop for the remaining orders
     // for all orders we have left
+    int orderNum = 2;
     for (int order = 0; order < houseLocations.size(); order++) {
         // get the distance to all houses from the last house (our current location)
         pathLengths = findPathDistances(std::make_pair(lastHouseX, lastHouseY), houseLocations, grid);
@@ -242,6 +249,9 @@ int main(int argc, char* argv[]) {
         // write the path output to a file
         Dijkstra dijkstraHouses(grid);
         paths = dijkstraHouses.findShortestPath(lastHouseY,lastHouseX, houseLocations[shortestIndex].second, houseLocations[shortestIndex].first);
+        orderBuffer << "Order " << orderNum << "\n" << "Start location: (" << paths[0].second << "," << paths[0].first << ")\nEnd location: (" << paths[paths.size() - 1].second << "," << paths[paths.size() - 1].first << ")" << std::endl;
+        orderBuffer << "Path length: " << paths.size() << "\n" << std::endl;
+        orderNum++;
 
         // store the delivery house location
         lastHouseX = houseLocations[shortestIndex].first;
@@ -252,12 +262,15 @@ int main(int argc, char* argv[]) {
         for (const std::pair<int, int>& p : paths) {
             buffer << p.first << " " << p.second << std::endl;
         }
+        buffer << std::endl;
 
         houseLocations.erase(houseLocations.begin()+shortestIndex); // delete the house we already visited
         order--;
         shortestIndex = 0; // reset our shortest index for the next orders
     }
+    std::string orderOutput = orderBuffer.str();
     std::string output = buffer.str();
+    std::cout << orderOutput;
     outfile << output;
     return 0;
 }
